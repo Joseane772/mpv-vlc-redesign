@@ -6,9 +6,19 @@ rectangular, orange-cone interface from Juxtopposed's video
 and its [Figma community file](https://www.figma.com/community/file/1691465999134370980),
 rebuilt as an mpv user script.
 
-![Player](docs/screenshots/player.jpg)
-
+> **All design credit goes to [Juxtopposed](https://www.youtube.com/@juxtopposed).** The layout,
+> colors, icon style and nearly every idea here come from the video and the Figma file linked above.
+> This repo only translates that design into a working mpv setup. If you like it, go watch the
+> video and support the creator ([ko-fi](https://ko-fi.com/juxtopposedme)).
+>
+> 🤖 **Built mostly with [Claude Code](https://claude.com/claude-code).** The Lua interface, config,
+> installer, tests and screenshots were written by Claude Code from the design files and the video,
+> with direction and review by the repo owner.
+>
 > Fan project. Not affiliated with VideoLAN or VLC. It is mpv underneath, so it plays everything mpv plays.
+
+![Player](docs/screenshots/player.jpg)
+<p align="center"><i>The player: thin control bar, thick seekbar with chapters and subtitle cues, cone volume.</i></p>
 
 ## What you get
 
@@ -44,12 +54,16 @@ Everything below follows the ideas from the video:
 - **Settings window** with an **accent color picker** (orange, red, olive, green, teal, blue, purple, pink,
   gray), interface size, and a **keyboard shortcuts** page generated from your `input.conf`.
 
+## Screenshots
+
 | | |
 |---|---|
-| ![Subtitles sidebar](docs/screenshots/sidebar-subtitles.jpg) | ![Audio sidebar](docs/screenshots/sidebar-audio.jpg) |
-| ![Library and queue](docs/screenshots/library-queue.jpg) | ![Right-click menu](docs/screenshots/context-menu.jpg) |
-| ![Subtitle tracks](docs/screenshots/subtitle-tracks.jpg) | ![Settings](docs/screenshots/settings.jpg) |
-| ![Accent color](docs/screenshots/accent-color.jpg) | ![Home screen](docs/screenshots/home.jpg) |
+| ![Subtitles sidebar](docs/screenshots/sidebar-subtitles.jpg)<br>**Subtitles tab**: delay slider, speed, font, colors | ![Audio sidebar](docs/screenshots/sidebar-audio.jpg)<br>**Audio tab**: 10-band equalizer with VLC presets |
+| ![Library and queue](docs/screenshots/library-queue.jpg)<br>**Library + queue** next to the video, with watched progress | ![Right-click menu](docs/screenshots/context-menu.jpg)<br>**Right-click menu** with submenus and shortcuts |
+| ![Subtitle tracks](docs/screenshots/subtitle-tracks.jpg)<br>**Subtitle button**: embedded and external tracks, + to add | ![Settings](docs/screenshots/settings.jpg)<br>**Settings** with accent colors and interface size |
+| ![Accent color](docs/screenshots/accent-color.jpg)<br>**Any accent color**, here purple, with the Playback tab | ![Home screen](docs/screenshots/home.jpg)<br>**Home screen** with “Continue watching” |
+
+<sub>Screenshots use a synthetic test video. The interface is rendered by mpv/libass exactly as in the player.</sub>
 
 ## Install
 
@@ -132,8 +146,13 @@ fonts/                         Inter + Lucide icon font (bundled)
 
 ## Credits
 
-- Design: **Juxtopposed**, [video](https://www.youtube.com/watch?v=ERFeOgqk324) and
-  [Figma file](https://www.figma.com/community/file/1691465999134370980).
+- **Design: [Juxtopposed](https://www.youtube.com/@juxtopposed)**, from the video
+  [“I Redesigned VLC After 25 Years”](https://www.youtube.com/watch?v=ERFeOgqk324) and the
+  [VLC Redesign (Community) Figma file](https://www.figma.com/community/file/1691465999134370980).
+  Colors, layout, icon style, the cone volume slider, the sidebar tabs, presets, the library-next-to-the-video
+  idea and the redesigned right-click menu are all theirs.
+- **Implementation: written mostly by [Claude Code](https://claude.com/claude-code)** (Anthropic's coding
+  agent), working from the Figma exports and the video, with direction and review by the repo owner.
 - [mpv](https://mpv.io), the player underneath.
 - Icons: [Lucide](https://lucide.dev) (ISC). Font: [Inter](https://rsms.me/inter/) (SIL OFL 1.1). Their
   licenses are in `licenses/`.
