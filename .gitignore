@@ -1,0 +1,4 @@
+*.bak-*
+watch_later/
+*.log
+.DS_Store
