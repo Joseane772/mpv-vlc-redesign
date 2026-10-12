@@ -56,6 +56,71 @@ function M.natural_lt(a, b)
     return pad(a) < pad(b)
 end
 
+function M.file_exists(path)
+    local info = path and utils.file_info(path)
+    return info ~= nil
+end
+
+-- "The.Wand.S01E04.1080p.WEB.mkv" -> { show = "The Wand", season = 1, episode = 4, year = nil, base = ... }
+local junk = { "%d%d%d%d?p", "%d[kK]", "x26[45]", "[hH]%.?26[45]", "hevc", "avc", "web%-?dl", "web%-?rip", "webrip", "web",
+    "bluray", "blu%-ray", "bdrip", "brrip", "dvdrip", "hdtv", "hdr", "10bit", "aac", "ac3", "dts", "ddp?5%.?1", "proper", "repack" }
+function M.parse_name(name)
+    local base = (name or ""):gsub("%.[%w]+$", "")
+    local clean = base:gsub("[%._]", " "):gsub("%s+", " ")
+    local r = { base = base }
+    local s, e = clean:match("[Ss](%d%d?)%s?[Ee](%d%d?%d?)")
+    local cut = clean:find("[Ss]%d%d?%s?[Ee]%d")
+    if not s then
+        s, e = clean:match("(%d%d?)[xX](%d%d%d?)")
+        cut = s and clean:find("%d%d?[xX]%d%d")
+    end
+    if not e then
+        e = clean:match("[Ee][Pp]?%s?(%d%d?%d?)%f[^%d]") or clean:match("%s%-%s(%d%d?%d?)%f[^%d]")
+        cut = e and (clean:find("[Ee][Pp]?%s?%d") or clean:find("%s%-%s%d"))
+    end
+    r.season, r.episode = tonumber(s), tonumber(e)
+    local show = cut and clean:sub(1, cut - 1) or clean
+    local year = show:match("[%(%[]?((19%d%d))[%)%]]?") or show:match("%f[%d](20%d%d)%f[^%d]")
+    r.year = tonumber(year)
+    show = show:gsub("%b[]", ""):gsub("%b()", "")
+    local low = show:lower()
+    local stop = #show + 1
+    for _, pat in ipairs(junk) do
+        local i = low:find("%f[%w]" .. pat .. "%f[^%w]")
+        if i and i < stop then stop = i end
+    end
+    if r.year then
+        local i = show:find(tostring(r.year), 1, true)
+        if i and i > 1 and i < stop then stop = i end
+    end
+    show = show:sub(1, stop - 1):gsub("[%s%-]+$", ""):gsub("^%s+", "")
+    r.show = show ~= "" and show or clean
+    return r
+end
+
+function M.copy_file(src, dst)
+    local i = io.open(src, "rb")
+    if not i then return false end
+    local data = i:read("*a")
+    i:close()
+    local o = io.open(dst, "wb")
+    if not o then return false end
+    o:write(data)
+    o:close()
+    return true
+end
+
+-- A path that does not exist yet: base.ext, base.2.ext, base.3.ext …
+function M.unique_path(dir, base, ext)
+    local p = utils.join_path(dir, base .. "." .. ext)
+    local n = 2
+    while M.file_exists(p) do
+        p = utils.join_path(dir, base .. "." .. n .. "." .. ext)
+        n = n + 1
+    end
+    return p
+end
+
 local function find_exe(name)
     local path = os.getenv("PATH") or ""
     for dir in path:gmatch("[^:]+") do

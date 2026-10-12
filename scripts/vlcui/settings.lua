@@ -16,6 +16,7 @@ St.pages = {
     { "playback", "Playback", "play" },
     { "seekbar", "Seekbar", "gauge" },
     { "media", "Video, audio & subtitles", "clapperboard" },
+    { "downloads", "Subtitle downloads", "captions" },
     { group = "System" },
     { "about", "About", "info" },
 }
@@ -196,6 +197,54 @@ local function page_media()
     end
 end
 
+local function page_downloads()
+    local s, b = ctx.s, ctx.b
+    heading("OpenSubtitles")
+    b:text(L.x, L.y + 8 * s, "Search and download subtitles from opensubtitles.com (free account + API key).", { size = 14 * s, color = D.T.text2 })
+    b:text(L.x, L.y + 30 * s, "Get a key: log in, open opensubtitles.com/consumers and create a consumer.", { size = 14 * s, color = D.T.text2 })
+    L.y = L.y + 56 * s
+    local function field(id, label, key, secret, info)
+        local cy = L.y + 22 * s
+        row_label(label, cy, info, id)
+        local v = media.setting(key, "")
+        local shown = v == "" and "" or (secret and string.rep("•", math.min(#v, 16)) or v)
+        local from_conf = ctx.opts["opensubtitles_" .. key:gsub("^os_", "")] or ""
+        if shown == "" and from_conf ~= "" then shown = "Set in vlcui.conf" end
+        local bw = 300 * s
+        U.box(id, L.x + L.w - bw, cy - 17 * s, bw, 34 * s, shown, {
+            placeholder = "Not set",
+            on_click = function()
+                media.prompt(label .. ":", secret and "" or v, function(t)
+                    media.set_setting(key, (t or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+                    ctx.os_test = nil
+                end)
+            end,
+        })
+        L.y = L.y + 50 * s
+    end
+    field("set:oskey", "API key", "os_api_key", true, "Required. Stored in vlcui.json in your mpv state folder.")
+    field("set:osuser", "Username", "os_username", false, "Optional. Logged-in users get more downloads per day.")
+    field("set:ospass", "Password", "os_password", true, "Optional. Stored as plain text in vlcui.json.")
+    L.y = L.y + 6 * s
+    U.button("set:ostest", L.x, L.y, 200 * s, 36 * s, "Test connection", {
+        icon = "check",
+        on_click = function()
+            ctx.os_test = "Testing…"
+            require('subsearch').search({ query = "big buck bunny", languages = "en" }, function(list, err)
+                ctx.os_test = list and ("Connected · " .. #list .. " results for a test search") or ("Failed: " .. tostring(err))
+                ctx.request_render()
+            end)
+        end,
+    })
+    U.button("set:osopen", L.x + 210 * s, L.y, 220 * s, 36 * s, "Open subtitle search", {
+        icon = "search", on_click = function() ctx.api.open_subtitles("file", "online") end,
+    })
+    if ctx.os_test then
+        b:text(L.x, L.y + 56 * s, ctx.os_test, { size = 14 * s, color = ctx.os_test:find("^Connected") and "8be07a" or D.T.text2 })
+    end
+    L.y = L.y + 80 * s
+end
+
 local function page_controls()
     local s, b = ctx.s, ctx.b
     heading("Keyboard shortcuts")
@@ -297,7 +346,7 @@ function St.draw()
     L.x, L.w, L.y = cx, cw, top + 12 * s
     local page = ({
         general = page_general, interface = page_interface, playback = page_playback, seekbar = page_seekbar,
-        media = page_media, controls = page_controls, about = page_about,
+        media = page_media, controls = page_controls, about = page_about, downloads = page_downloads,
     })[St.page] or page_general
     page()
     U.scroll_end("set:page:" .. St.page, x + nw, py, w - nw, ph, L.y - top + 20 * s)

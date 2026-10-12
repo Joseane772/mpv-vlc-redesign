@@ -61,11 +61,11 @@ function Bars.sub_menu_items()
         }
     end
     items[#items + 1] = {
-        header = true, label = "External tracks", button_icon = "plus", button_tooltip = "Add subtitle file",
-        button_action = media.add_subtitle_dialog,
+        header = true, label = "External tracks", button_icon = "plus", button_tooltip = "Add subtitles",
+        button_action = function() ctx.api.open_subtitles("file", "local") end,
     }
     if #external == 0 then
-        items[#items + 1] = { label = "Add subtitle file…", icon = "file-plus", action = media.add_subtitle_dialog }
+        items[#items + 1] = { label = "Add subtitle file…", icon = "file-plus", action = function() ctx.api.open_subtitles("file", "local") end }
     end
     for _, t in ipairs(external) do
         items[#items + 1] = {
@@ -79,6 +79,7 @@ function Bars.sub_menu_items()
         sec[#sec + 1] = { label = media.track_label(t), checked = t["main-selection"] == 1,
             action = function() mp.set_property("secondary-sid", tostring(t.id)) end }
     end
+    items[#items + 1] = { label = "Search OpenSubtitles…", icon = "search", action = function() ctx.api.open_subtitles("file", "online") end }
     items[#items + 1] = { separator = true }
     items[#items + 1] = { label = "Secondary subtitle", icon = "layers", submenu = sec }
     items[#items + 1] = { label = "Subtitle settings", icon = "sliders", action = function() ctx.api.open_panel("settings", "subtitles") end }

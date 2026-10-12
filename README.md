@@ -42,6 +42,18 @@ Everything below follows the ideas from the video:
     subtitle speed, font, colors, bold, **relative or exact pixel sizes**, outline, background, position.
   - **Presets**: save the subtitle/audio sync and style as a preset *for this folder*, so every
     episode of a show opens with the same delay, track language and look.
+- **Add subtitles the way the video imagined it** (Ctrl+Shift+V, or Alt+S to search online). Add them to
+  **this file or the whole folder**, **from this computer or from OpenSubtitles**:
+  - Online search uses the file's hash plus the show / season / episode parsed from the file name.
+    Exact hash matches are marked, and the best result is picked automatically for each episode.
+    **Download all** fetches a whole season. Files are saved as `<video name>.<lang>.srt` and load
+    automatically from then on.
+  - From this computer: pick a folder's worth of subtitle files and they're **matched to episodes**
+    (S01E02 / 1x02 / episode number) and copied next to each video with the right name.
+    No more dragging a subtitle in for every episode.
+- **Rename files** without leaving the player: **F2** renames the playing file. Playback continues where
+  you were, and matching subtitles are renamed too. **Shift+F2** batch-renames a folder with find & replace,
+  patterns like `{show} - S{season}E{episode}`, a live preview that flags conflicts, and **Undo**.
 - **Library without leaving the video**: click the folder name or the sidebar icon to browse the show's
   folder in a compact panel, with watched-progress bars. You also get Recent and saved Playlists.
   Click an episode to play the folder from there, or **+** to add it to the queue.
@@ -62,6 +74,8 @@ Everything below follows the ideas from the video:
 | ![Library and queue](docs/screenshots/library-queue.jpg)<br>**Library + queue** next to the video, with watched progress | ![Right-click menu](docs/screenshots/context-menu.jpg)<br>**Right-click menu** with submenus and shortcuts |
 | ![Subtitle tracks](docs/screenshots/subtitle-tracks.jpg)<br>**Subtitle button**: embedded and external tracks, + to add | ![Settings](docs/screenshots/settings.jpg)<br>**Settings** with accent colors and interface size |
 | ![Accent color](docs/screenshots/accent-color.jpg)<br>**Any accent color**, here purple, with the Playback tab | ![Home screen](docs/screenshots/home.jpg)<br>**Home screen** with “Continue watching” |
+| ![Subtitle search](docs/screenshots/subtitle-search.jpg)<br>**OpenSubtitles search** with hash matches, trusted / HI / AI badges | ![Subtitle search for a folder](docs/screenshots/subtitle-search-folder.jpg)<br>**A whole season at once**: best match per episode, Download all |
+| ![Rename files](docs/screenshots/rename.jpg)<br>**Batch rename** with patterns, live preview and Undo | |
 
 <sub>Screenshots use a synthetic test video. The interface is rendered by mpv/libass exactly as in the player.</sub>
 
@@ -111,17 +125,34 @@ VLC-style keys. Press **F1** in the player for the full list.
 | Ctrl+\\ | Hide / show the interface | I | Media info |
 | Ctrl+O / Ctrl+F | Open file / folder | Ctrl+N / Ctrl+V | Open URL / play clipboard |
 | Shift+R | Record | Shift+S | Snapshot |
+| Ctrl+Shift+V | Add subtitles (file or folder) | Alt+S | Search subtitles online |
+| F2 | Rename the playing file | Shift+F2 | Rename files in this folder |
 | Right-click | Menu | Ctrl+Q | Quit |
 
 Change keys in `input.conf`. Every action is available as `script-binding vlcui/<name>`.
+
+## OpenSubtitles setup
+
+OpenSubtitles requires a (free) API key for every request:
+
+1. Create an account at [opensubtitles.com](https://www.opensubtitles.com) and open
+   [opensubtitles.com/consumers](https://www.opensubtitles.com/consumers).
+2. Create a new consumer (any name) and copy its **API key**.
+3. In the player: **Settings → Subtitle downloads → API key** (or put `opensubtitles_api_key=` in
+   `script-opts/vlcui.conf`). Press **Test connection**.
+4. Optional: add your username and password to get a higher daily download limit. These are stored as
+   plain text in `vlcui.json` / `vlcui.conf`.
+
+Searching is free. Downloads count against your daily OpenSubtitles quota, and the dialog shows how
+many are left. Requires `curl`, which is preinstalled on Linux, macOS and Windows 10+.
 
 ## Configuration
 
 - **In the player**: Settings (Ctrl+P) holds the accent color, interface size, wheel behavior, toasts, the
   resume prompt, folder auto-queue and seekbar extras. These choices, plus presets, bookmarks and
   history, are saved in `~/.local/state/mpv/vlcui.json`.
-- **`script-opts/vlcui.conf`**: defaults such as `scale`, `accent`, `hide_delay`, panel widths and
-  `shrink_video` (move the video aside when a panel is open).
+- **`script-opts/vlcui.conf`**: defaults such as `scale`, `accent`, `hide_delay`, panel widths,
+  `shrink_video` (move the video aside when a panel is open) and the `opensubtitles_*` credentials.
 - **`mpv.conf`**: regular mpv options. `border=no` gives you the redesigned title bar with its own window
   buttons; set `border=yes` to keep your window manager's title bar (the buttons then hide automatically).
   Keep `osd-border-style` at its default. Script overlays inherit the OSD style, and `background-box`
@@ -138,6 +169,8 @@ scripts/vlcui/                 the interface (Lua)
   sidebar.lua                  Playback / Video / Audio / Subtitles tabs + presets
   library.lua, queue.lua       library panel and queue panel
   settings.lua                 settings window and shortcut list
+  subsearch.lua                "Add subtitles" dialog + OpenSubtitles client (hash search, download)
+  rename.lua                   single / batch file renaming with preview and undo
   menus.lua                    right-click menu, dropdowns, submenus
   media.lua                    tracks, filters, EQ, presets, bookmarks, history, dialogs
   ui.lua, draw.lua             widgets, ASS drawing, theme, icons

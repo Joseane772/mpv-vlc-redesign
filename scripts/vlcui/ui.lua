@@ -256,6 +256,35 @@ function U.info(id, cx, cy, text)
     U.region(id, cx - 9 * ctx.s, cy - 9 * ctx.s, 18 * ctx.s, 18 * ctx.s, { tooltip = text, hover = true })
 end
 
+-- Centered dialog with backdrop, title and close button. Returns the content rectangle.
+function U.modal(id, title, w, h, on_close)
+    local s, b = ctx.s, ctx.b
+    local W, H = ctx.w, ctx.h
+    b:rect(0, 0, W, H, { color = "000000", opacity = 0.55 })
+    U.region(id .. ":backdrop", 0, 0, W, H, { block = true, hover = false, click = on_close, wheel = function() end })
+    w = math.min(w, W - 32 * s)
+    h = math.min(h, H - 32 * s)
+    local x, y = (W - w) / 2, (H - h) / 2
+    b:rect(x, y + 6 * s, w, h, { color = "000000", opacity = 0.6, r = 14 * s, blur = 18 * s })
+    b:rect(x, y, w, h, { color = "0e0e0e", r = 12 * s, border = 1 * s, border_color = "262626" })
+    U.region(id .. ":win", x, y, w, h, { block = true, hover = false })
+    b:text(x + 24 * s, y + 30 * s, title, { size = 17 * s, color = D.T.text })
+    U.icon_button(id .. ":close", x + w - 30 * s, y + 30 * s, "x", { size = 18, tooltip = "Close (Esc)", on_click = on_close })
+    b:rect(x, y + 59 * s, w, 1 * s, { color = "202020" })
+    return x + 24 * s, y + 72 * s, w - 48 * s, h - 84 * s
+end
+
+-- Small colored label ("EN", "HI", "hash match")
+function U.badge(x, cy, text, color, o)
+    o = o or {}
+    local s, b = ctx.s, ctx.b
+    local size = 11 * s
+    local w = D.text_width(text, size, true) + 10 * s
+    b:rect(x, cy - 9 * s, w, 18 * s, { color = D.mix(color, "000000", 0.72), r = 3 * s, clip = o.clip })
+    b:text(x + w / 2, cy, text, { align = 5, size = size, color = color, bold = true, clip = o.clip })
+    return w
+end
+
 ---------------------------------------------------------------------------
 -- Scroll containers
 ---------------------------------------------------------------------------

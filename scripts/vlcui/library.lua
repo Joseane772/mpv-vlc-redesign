@@ -41,9 +41,10 @@ function Lib.follow_current()
 end
 
 local function listing()
-    if Lib.listing and Lib.listing_dir == Lib.dir then return Lib.listing end
+    if Lib.listing and Lib.listing_dir == Lib.dir and Lib.listing_ver == (ctx.fs_version or 0) then return Lib.listing end
     Lib.listing = media.list_dir(Lib.dir)
     Lib.listing_dir = Lib.dir
+    Lib.listing_ver = ctx.fs_version or 0
     return Lib.listing
 end
 
@@ -153,6 +154,11 @@ local function draw_browse(x, y, w, h)
                     ctx.toast(nil, #l.files .. " files added to the queue")
                 end },
                 { separator = true },
+                { label = "Find subtitles for this folder…", icon = "captions", action = function()
+                    ctx.api.open_subtitles("folder", "online")
+                end },
+                { label = "Rename files…", icon = "type", action = function() ctx.api.rename_folder(Lib.dir) end },
+                { separator = true },
                 { label = "Go to playing file", icon = "monitor-play", action = Lib.follow_current },
                 { label = "Open another folder…", icon = "folder-open", action = function()
                     media.pick("folder", function(list) Lib.set_dir(list[1]) end)
@@ -208,7 +214,16 @@ local function draw_browse(x, y, w, h)
             progress = prog,
             on_click = function() media.play_folder_from(Lib.dir, f.path) end,
             on_add = function() mp.commandv("loadfile", f.path, "append-play"); ctx.toast(nil, "Added to queue: " .. f.name) end,
-            tooltip = f.name,
+            on_rclick = function()
+                ctx.api.open_menu({
+                    { label = "Play", icon = "play", action = function() media.play_folder_from(Lib.dir, f.path) end },
+                    { label = "Add to queue", icon = "list", action = function() mp.commandv("loadfile", f.path, "append-play") end },
+                    { separator = true },
+                    { label = "Rename…", icon = "type", hint = "F2", action = function() ctx.api.rename_file(f.path) end },
+                    { label = "Rename files in this folder…", icon = "folder", action = function() ctx.api.rename_folder(Lib.dir) end },
+                }, ctx.mouse.x, ctx.mouse.y)
+            end,
+            tooltip = f.name .. "  ·  right-click for more",
         })
         cy2 = cy2 + rh
     end

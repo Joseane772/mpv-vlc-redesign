@@ -17,6 +17,8 @@ local Sidebar = require 'sidebar'
 local Queue = require 'queue'
 local Library = require 'library'
 local Settings = require 'settings'
+local SubSearch = require 'subsearch'
+local Rename = require 'rename'
 
 local opts = {
     scale = 1.0,              -- base UI scale (multiplied by the display HiDPI scale)
@@ -27,8 +29,13 @@ local opts = {
     library_width = 360,      -- left library width
     shrink_video = true,      -- move the video aside when a side panel is open (instead of covering it)
     debug_size = "1280x720",  -- OSD size to assume when there is no window (headless testing)
+    opensubtitles_api_key = "",   -- or set it in Settings → Subtitle downloads
+    opensubtitles_username = "",  -- optional, raises the daily download limit
+    opensubtitles_password = "",
+    opensubtitles_api_url = "https://api.opensubtitles.com/api/v1",
 }
 options.read_options(opts, "vlcui", function() ctx.request_render() end)
+ctx.opts = opts
 
 media.load_store()
 D.set_accent(media.setting("accent", opts.accent ~= "" and opts.accent or "d37918"))
@@ -163,6 +170,10 @@ end
 
 function api.open_dialog() media.open_dialog("replace") end
 
+function api.open_subtitles(target, source) menus.close(); SubSearch.open(target, source) end
+function api.rename_file(path) Rename.rename_file(path) end
+function api.rename_folder(dir) menus.close(); Rename.open(dir) end
+
 function api.add_bookmark()
     local t = media.add_bookmark()
     if t then ctx.toast("Ctrl+B", "Bookmark added at " .. media.fmt_time(t)) end
@@ -192,7 +203,11 @@ local function open_items()
         { label = "Open recent", icon = "history", submenu = recent_items },
         { separator = true },
         { label = "Add files to queue…", icon = "plus", action = function() media.open_dialog("append") end },
-        { label = "Add subtitle file…", icon = "captions", action = media.add_subtitle_dialog },
+        { label = "Add subtitles…", icon = "captions", action = function() SubSearch.open("file", "local") end },
+        { label = "Search subtitles online…", icon = "search", hint = "Alt+S", action = function() SubSearch.open("file", "online") end },
+        { separator = true },
+        { label = "Rename file…", icon = "type", hint = "F2", action = function() Rename.rename_file() end },
+        { label = "Rename files in this folder…", icon = "folder", hint = "Shift+F2", action = function() Rename.open() end },
     }
 end
 
@@ -595,7 +610,9 @@ render = function()
         if ctx.show_top then Bars.draw_top() end
         if ctx.show_bot then Bars.draw_bottom() else Bars.clear_thumb() end
         draw_resume(h - bot_h)
-        if ctx.modal == "settings" then Settings.draw() end
+        if ctx.modal == "settings" then Settings.draw()
+        elseif ctx.modal == "subs" then SubSearch.draw()
+        elseif ctx.modal == "rename" then Rename.draw() end
     else
         Bars.clear_thumb()
     end
@@ -859,7 +876,10 @@ bind("open-file", function() media.open_dialog("replace") end)
 bind("open-folder", function() media.open_folder_dialog("replace") end)
 bind("open-url", function() media.open_url() end)
 bind("paste", function() media.paste_and_play() end)
-bind("add-subtitle", function() media.add_subtitle_dialog() end)
+bind("add-subtitle", function() SubSearch.open("file", "local") end)
+bind("search-subtitles", function() SubSearch.open("file", "online") end)
+bind("rename-file", function() Rename.rename_file() end)
+bind("rename-folder", function() Rename.open() end)
 bind("mini-player", function() media.toggle_mini() end)
 bind("context-menu", function() api.context_menu(ctx.w / 2 - 120 * ctx.s, ctx.h / 3) end)
 bind("main-menu", function() api.main_menu(46 * ctx.s, Bars.top_h() + 4 * ctx.s) end)
@@ -965,4 +985,5 @@ end)
 ctx.request_render()
 
 -- exposed for the debug "eval" message
-vlcui_debug = { ctx = ctx, api = api, media = media, menus = menus, Settings = Settings, Library = Library, render = function() render() end }
+vlcui_debug = { ctx = ctx, api = api, media = media, menus = menus, Settings = Settings, Library = Library,
+    SubSearch = SubSearch, Rename = Rename, render = function() render() end }

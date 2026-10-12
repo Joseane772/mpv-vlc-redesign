@@ -485,7 +485,10 @@ local function tab_subtitles()
     value_row("sb:lang", "Preferred language", (slang and slang ~= "") and slang or "Auto", function()
         media.prompt("Preferred subtitle languages (e.g. en,eng):", slang or "", function(t) mp.set_property("slang", t or "") end)
     end, { info = "Auto-selects this language on every file. Save it in a preset to keep it per show." })
-    button_row("sb:add", "Add subtitle file…", "file-plus", media.add_subtitle_dialog)
+    local half = (L.w - 8 * s) / 2
+    U.button("sb:add", L.x, L.y, half, 34 * s, "Add subtitles…", { icon = "file-plus", size = 13, on_click = function() ctx.api.open_subtitles("file", "local") end })
+    U.button("sb:search", L.x + half + 8 * s, L.y, half, 34 * s, "Search online…", { icon = "search", size = 13, on_click = function() ctx.api.open_subtitles("file", "online") end })
+    L.y = L.y + 42 * s
 
     section("Synchronization")
     local sd = num("sub-delay", 0)
