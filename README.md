@@ -73,7 +73,7 @@ embedded tracks, waveform), `zenity` or `kdialog` on Linux for file pickers.
 ### Linux / macOS
 
 ```sh
-git clone https://github.com/<you>/mpv-vlc-redesign.git
+git clone https://github.com/Joseane772/mpv-vlc-redesign.git
 cd mpv-vlc-redesign
 ./install.sh --thumbfast      # --thumbfast adds seekbar thumbnails (optional)
 ```
